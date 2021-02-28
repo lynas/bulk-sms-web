@@ -1,7 +1,6 @@
 package com.lynas.bulksms
 
 import android.Manifest
-import android.content.Context
 import android.os.Bundle
 import android.telephony.SmsManager
 import android.widget.Button
@@ -37,7 +36,7 @@ class MainActivity : AppCompatActivity() {
             messageArrayList.addAll(message)
             println(message)
             CoroutineScope(Dispatchers.IO).launch {
-                    val numberArray = send().await()
+                    val numberArray = sendAsync().await()
                     val numberArraySize = numberArray.size
                     println(numberArraySize)
 
@@ -75,7 +74,7 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    fun send() = GlobalScope.async {
+    fun sendAsync() = GlobalScope.async {
         val url = etNumberUrl.text.toString()
         val (_, _, result) = url.httpGet().responseString()
         when (result) {
