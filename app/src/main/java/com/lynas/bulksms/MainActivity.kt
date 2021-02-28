@@ -1,11 +1,12 @@
 package com.lynas.bulksms
 
 import android.Manifest
+import android.content.Context
 import android.os.Bundle
-import android.provider.Contacts
 import android.telephony.SmsManager
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import android.widget.Toast.LENGTH_SHORT
 import androidx.appcompat.app.AppCompatActivity
@@ -13,13 +14,12 @@ import androidx.core.app.ActivityCompat
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.result.Result
 import kotlinx.coroutines.*
-import java.net.URL
-import java.nio.charset.Charset
 
 class MainActivity : AppCompatActivity() {
     lateinit var buttonSend: Button
     lateinit var etSMSMessage: EditText
     lateinit var etNumberUrl: EditText
+    lateinit var tvStatus: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,28 +27,35 @@ class MainActivity : AppCompatActivity() {
         buttonSend = findViewById(R.id.button)
         etSMSMessage = findViewById(R.id.editTextTextMultiLine)
         etNumberUrl = findViewById(R.id.editTextTextNumberUrl)
+        tvStatus = findViewById(R.id.textViewStatus)
         val smsManager: SmsManager = SmsManager.getDefault()
 
         buttonSend.setOnClickListener {
-            Toast.makeText(this, "Sending SMS", LENGTH_SHORT).show()
+            tvStatus.text = "SMS sending Started"
             val message = etSMSMessage.text.split("\n")
             val messageArrayList = arrayListOf<String>()
             messageArrayList.addAll(message)
-
             println(message)
-            runBlocking {
-                withContext(Dispatchers.IO) {
+            CoroutineScope(Dispatchers.IO).launch {
                     val numberArray = send().await()
-                    println(numberArray.size)
+                    val numberArraySize = numberArray.size
+                    println(numberArraySize)
+
+                    var counter = 1
                     for (number in numberArray) {
+                        runOnUiThread {
+                            tvStatus.text = "Sending SMS $counter of $numberArraySize to ${number.trim()}"
+                        }
                         if (number.trim().isNotEmpty()) {
                             println("Sending sms to $number")
                             smsManager.sendMultipartTextMessage(number.trim(), null, messageArrayList, null, null)
                             delay(20000L)
                         }
+                        counter++
                     }
-                }
-
+                    runOnUiThread {
+                        tvStatus.text = "Sending SMS complete"
+                    }
             }
         }
 

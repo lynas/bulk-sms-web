@@ -48,4 +48,15 @@
         app:layout_constraintBottom_toTopOf="@+id/editTextTextNumberUrl"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/textViewStatus"
+        android:layout_width="357dp"
+        android:layout_height="30dp"
+        android:layout_marginTop="44dp"
+        android:text="Type SMS and press send once"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
