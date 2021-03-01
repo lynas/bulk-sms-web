@@ -16,6 +16,7 @@ import kotlinx.coroutines.*
 
 class MainActivity : AppCompatActivity() {
     lateinit var buttonSend: Button
+    lateinit var buttonCancel: Button
     lateinit var etSMSMessage: EditText
     lateinit var etNumberUrl: EditText
     lateinit var tvStatus: TextView
@@ -24,18 +25,25 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         buttonSend = findViewById(R.id.button)
+        buttonCancel = findViewById(R.id.buttonCancel)
         etSMSMessage = findViewById(R.id.editTextTextMultiLine)
         etNumberUrl = findViewById(R.id.editTextTextNumberUrl)
         tvStatus = findViewById(R.id.textViewStatus)
         val smsManager: SmsManager = SmsManager.getDefault()
+        val job = CoroutineScope(Dispatchers.IO)
 
         buttonSend.setOnClickListener {
+            if (etSMSMessage.text.toString().trim().isEmpty()) {
+                tvStatus.text = "SMS empty!!"
+                return@setOnClickListener
+            }
+            it.isEnabled = false
             tvStatus.text = "SMS sending Started"
             val message = etSMSMessage.text.split("\n")
             val messageArrayList = arrayListOf<String>()
             messageArrayList.addAll(message)
             println(message)
-            CoroutineScope(Dispatchers.IO).launch {
+            job.launch {
                     val numberArray = sendAsync().await()
                     val numberArraySize = numberArray.size
                     println(numberArraySize)
@@ -48,18 +56,23 @@ class MainActivity : AppCompatActivity() {
                         if (number.trim().isNotEmpty()) {
                             println("Sending sms to $number")
                             smsManager.sendMultipartTextMessage(number.trim(), null, messageArrayList, null, null)
-                            delay(20000L)
+                            delay(15000L)
                         }
                         counter++
                     }
                     runOnUiThread {
                         tvStatus.text = "Sending SMS complete"
+                        it.isEnabled = true
                     }
             }
         }
 
-
-
+        buttonCancel.setOnClickListener {
+            job.cancel()
+            tvStatus.text = "Sending SMS cancelled"
+            buttonSend.isEnabled = true
+            System.exit(0)
+        }
 
         if (ActivityCompat.shouldShowRequestPermissionRationale(
                 this,
